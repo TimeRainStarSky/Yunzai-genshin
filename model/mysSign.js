@@ -86,7 +86,7 @@ export default class MysSign extends base {
     if (!signInfo) return false
 
     if (signInfo.retcode == -100 && signInfo.message == '尚未登录') {
-      logger.error(`[原神签到失败]${this.log} 绑定cookie已失效`)
+      logger.error(`[签到失败]${this.log} 绑定cookie已失效`)
       let userAdmin = new User(this.e)
       if (userAdmin) {
         await userAdmin.delCk(ck.uid)
@@ -115,7 +115,7 @@ export default class MysSign extends base {
     this.signInfo = signInfo.data
 
     if (this.signInfo.is_sign && !this.force) {
-      logger.mark(`[原神已签到][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id,11,' ')}]`)
+      logger.mark(`[已签到][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id,11,' ')}]`)
       let reward = await this.getReward(this.signInfo.total_sign_day)
       this.setCache(this.signInfo.total_sign_day)
       return {
@@ -205,14 +205,14 @@ export default class MysSign extends base {
     this.signMsg = sign?.message ?? 'Too Many Requests'
 
     if (!sign) {
-      logger.mark(`[原神签到失败]${this.log}：${sign.message || this.signMsg}`)
+      logger.mark(`[签到失败]${this.log}：${sign.message || this.signMsg}`)
       return false
     }
 
     /** 签到成功 */
     if (sign.retcode === -5003) {
       this.signed = true
-      logger.mark(`[原神已经签到]${this.log} 第${this.ckNum}个`)
+      logger.mark(`[已经签到]${this.log} 第${this.ckNum}个`)
       return true
     }
 
@@ -221,16 +221,16 @@ export default class MysSign extends base {
       sign.message = '验证码失败'
       this.is_verify = true
 
-      logger.mark(`[原神签到失败]${this.log}：${sign.message} 第${this.ckNum}个`)
+      logger.mark(`[签到失败]${this.log}：${sign.message} 第${this.ckNum}个`)
       return false
     }
 
     if (sign.retcode === 0 && (sign?.data.success === 0 || sign?.message === 'OK')) {
-      logger.mark(`[原神签到成功]${this.log} 第${this.ckNum}个`)
+      logger.mark(`[签到成功]${this.log} 第${this.ckNum}个`)
       return true
     }
 
-    logger.mark(`[原神签到失败]${this.log}：${sign.message} 第${this.ckNum}个`)
+    logger.mark(`[签到失败]${this.log}：${sign.message} 第${this.ckNum}个`)
     return false
   }
 
