@@ -23,6 +23,10 @@ export default class MysInfo {
       ltuid: '',
       type: ''
     }
+
+    //
+    this.isSr = false
+
     // ck对应MysUser对象
     this.ckUser = null
     this.auth = ['dailyNote', 'bbs_sign_info', 'bbs_sign_home', 'bbs_sign', 'ys_ledger', 'compute', 'avatarSkill', 'detail', 'blueprint']
@@ -187,7 +191,7 @@ export default class MysInfo {
     if (!mysInfo.uid || !mysInfo.ckInfo.ck) return false
     e.uid = mysInfo.uid
 
-    let mysApi = new MysApi(mysInfo.uid, mysInfo.ckInfo.ck, option,e.isSr)
+    let mysApi = new MysApi(mysInfo.uid, mysInfo.ckInfo.ck, option, mysInfo.isSr)
 
     let res
     if (lodash.isObject(api)) {
@@ -248,6 +252,16 @@ export default class MysInfo {
       if (mysUser.ckData?.ck) {
         this.ckInfo = mysUser.ckData
         this.ckUser = mysUser
+
+        if(this.uid === this.ckInfo.uid){
+          // 星穹铁道 对暂时处理
+          if(this.ckInfo?.region_name.includes("星穹列车" || "无名客")){
+            this.isSr = true
+          }else{
+            this.isSr = false
+          }
+        }
+
         // 暂时直接记录请求uid，后期优化分析MysApi请求结果分状态记录结果
         await mysUser.addQueryUid(this.uid)
       } else {
