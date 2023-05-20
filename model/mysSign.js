@@ -414,6 +414,7 @@ export default class MysSign extends base {
     await this.e.reply(msg)
   }
 
+  // 验证流程
   async captcha(){
     let sign
     sign = await this.captchaOlives()
@@ -425,6 +426,7 @@ export default class MysSign extends base {
     return false
   }
 
+  // 手动验证
   async captchaOlives() {
     let sign = await this.mysApi.getData('bbs_sign')
 
@@ -450,7 +452,7 @@ export default class MysSign extends base {
     return false
   }
 
-  //  验证提交
+  // 验证提交
   async captchaSubmit(info) {
     let header = {
       "x-rpc-challenge": info?.challenge,
