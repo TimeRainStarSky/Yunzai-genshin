@@ -11,6 +11,10 @@ export default class base {
     return `Yz:genshin:${this.model}:`
   }
 
+  get prefixSr () {
+    return `Yz:honkaisr:${this.model}:`
+  }
+
   /**
    * 截图默认数据
    * @param saveId html保存id
