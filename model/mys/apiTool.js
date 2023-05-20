@@ -52,6 +52,26 @@ export default class apiTool {
                     url: `${hostRecord}game_record/app/card/wapi/verifyVerification`,
                     body: data
                 },
+                /** 原神 签到接口*/
+                /** 签到信息 */
+                bbs_sign_info: {
+                    url: `${host}event/bbs_sign_reward/info`,
+                    query: `act_id=e202009291139501&region=${this.server}&uid=${this.uid}`,
+                    sign: true
+                },
+                /** 签到奖励 */
+                bbs_sign_home: {
+                    url: `${host}event/bbs_sign_reward/home`,
+                    query: `act_id=e202009291139501&region=${this.server}&uid=${this.uid}`,
+                    sign: true
+                },
+                /** 签到 */
+                bbs_sign: {
+                    url: `${host}event/bbs_sign_reward/sign`,
+                    body: {act_id: 'e202009291139501', region: this.server, uid: this.uid},
+                    sign: true
+                },
+
                 /** 首页宝箱 */
                 index: {
                     url: `${hostRecord}game_record/app/genshin/api/index`,
@@ -130,6 +150,25 @@ export default class apiTool {
                 verifyVerification: {
                     url: `${hostRecord}game_record/app/card/wapi/verifyVerification`,
                     body: data
+                },
+                /** 星铁 签到接口*/
+                /** 签到信息 */
+                bbs_sign_info: {
+                    url: `${host}event/luna/info`,
+                    query: `act_id=e202304121516551&region=${this.server}&uid=${this.uid}`,
+                    sign: true
+                },
+                /** 签到奖励 */
+                bbs_sign_home: {
+                    url: `${host}event/luna/home`,
+                    query: `act_id=e202304121516551&region=${this.server}&uid=${this.uid}`,
+                    sign: true
+                },
+                /** 签到 */
+                bbs_sign: {
+                    url: `${host}event/luna/sign`,
+                    body: {act_id: 'e202304121516551', region: this.server, uid: this.uid},
+                    sign: true
                 },
                 getFp: {
                     url: `${hostPublicData}device-fp/api/getFp`,

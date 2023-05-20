@@ -109,7 +109,7 @@ export default class MysSign extends base {
     this.signInfo = signInfo.data
 
     if (this.signInfo.is_sign && !this.force) {
-      // logger.mark(`[原神已签到][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id,11,' ')}]`)
+      logger.mark(`[原神已签到][uid:${this.mysApi.uid}][qq:${lodash.padEnd(this.e.user_id,11,' ')}]`)
       let reward = await this.getReward(this.signInfo.total_sign_day)
       this.setCache(this.signInfo.total_sign_day)
       return {
