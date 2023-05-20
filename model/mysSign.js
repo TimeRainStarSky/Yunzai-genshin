@@ -60,6 +60,7 @@ export default class MysSign extends base {
 
   async doSign (ck, isLog = true) {
     ck = this.setCk(ck)
+    // 签到类型 判断
     if(ck.region_name && ck.region_name.includes("星穹列车" || "无名客")){
       this.isSr = true
     }else{
@@ -214,6 +215,14 @@ export default class MysSign extends base {
       this.signed = true
       logger.mark(`[已经签到]${this.log} 第${this.ckNum}个`)
       return true
+    }
+
+    // 接入 验证码 处理流程
+    if (sign.data && sign.data.risk_code === 375){
+      let res = await this.captcha()
+      if(res){
+        sign = res
+      }
     }
 
     if (sign.data && sign.data.risk_code === 375) {
@@ -404,4 +413,59 @@ export default class MysSign extends base {
     }
     await this.e.reply(msg)
   }
+
+  async captcha(){
+    let sign
+    sign = await this.captchaOlives()
+
+    if(sign){
+      return sign
+    }
+
+    return false
+  }
+
+  async captchaOlives() {
+    let sign = await this.mysApi.getData('bbs_sign')
+
+    let res = await this.mysApi.getData('olives_shorten', sign.data)
+
+    if (!res) {
+      return false
+    }
+
+    this.e.reply('米游社签到遇见验证码，请完成验证:\n' + res?.short_url, {at: true})
+
+    let number = 6
+
+    while (number) {
+      res = await this.mysApi.getData('olives_data', sign.data)
+      if (res.status == 'success') {
+        return await this.captchaSubmit(res.data)
+      } else {
+        await common.sleep(5000)
+        number--
+      }
+    }
+    return false
+  }
+
+  //  验证提交
+  async captchaSubmit(info) {
+    let header = {
+      "x-rpc-challenge": info?.challenge,
+      "x-rpc-validate": info?.validate,
+      "x-rpc-seccode": `${info?.validate}|jordan`
+    }
+
+    let data = {headers: header}
+    let sign = await this.mysApi.getData('bbs_sign', data)
+
+    if (sign.retcode === 0 && (sign?.data.success === 0 || sign?.message === 'OK')) {
+      //  签到成功
+      return sign
+    }
+    return false
+  }
+
 }
