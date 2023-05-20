@@ -23,16 +23,35 @@ export default class apiTool {
 
 
     getUrlMap = (data = {}) => {
-        let host, hostRecord
+        let host, hostRecord, hostPublicData
         if (['cn_gf01', 'cn_qd01', 'prod_gf_cn','prod_qd_cn'].includes(this.server)) {
             host = 'https://api-takumi.mihoyo.com/'
             hostRecord = 'https://api-takumi-record.mihoyo.com/'
+            hostPublicData = 'https://public-data-api.mihoyo.com/'
         } else if (['os_usa', 'os_euro', 'os_asia', 'os_cht'].includes(this.server)) {
             host = 'https://api-os-takumi.mihoyo.com/'
             hostRecord = 'https://bbs-api-os.mihoyo.com/'
         }
         let urlMap = {
             genshin: {
+                /** captcha - olives */
+                olives_shorten:{
+                    url: 'https://captcha.olives.wiki/shorten',
+                    query: `gt=${data.gt}&challenge=${data.challenge}`
+                },
+                olives_data:{
+                    url: 'https://captcha.olives.wiki/data',
+                    query: `challenge=${data.challenge}`
+                },
+                /** mys 验证界面*/
+                createVerification: {
+                    url: `${hostRecord}game_record/app/card/wapi/createVerification`,
+                    query: 'is_high=true'
+                },
+                verifyVerification: {
+                    url: `${hostRecord}game_record/app/card/wapi/verifyVerification`,
+                    body: data
+                },
                 /** 首页宝箱 */
                 index: {
                     url: `${hostRecord}game_record/app/genshin/api/index`,
@@ -94,6 +113,38 @@ export default class apiTool {
                 }
             },
             honkaisr: {
+                /** captcha - olives */
+                olives_shorten:{
+                    url: 'https://captcha.olives.wiki/shorten',
+                    query: `gt=${data.gt}&challenge=${data.challenge}`
+                },
+                olives_data:{
+                    url: 'https://captcha.olives.wiki/data',
+                    query: `challenge=${data.challenge}`
+                },
+                /** mys 验证界面*/
+                createVerification: {
+                    url: `${hostRecord}game_record/app/card/wapi/createVerification`,
+                    query: 'is_high=true'
+                },
+                verifyVerification: {
+                    url: `${hostRecord}game_record/app/card/wapi/verifyVerification`,
+                    body: data
+                },
+                getFp: {
+                    url: `${hostPublicData}device-fp/api/getFp`,
+                    body: {
+                        seed_id: `${generateSeed(16)}`,
+                        // device_id: this.deviceId,
+                        device_id: '3a254cb8-e576-697a-f2b7-dfbb7b8d9c28',
+                        platform: '5',
+                        seed_time: new Date().getTime() + '',
+                        ext_fields: '{"userAgent":"Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.50.1","browserScreenSize":281520,"maxTouchPoints":5,"isTouchSupported":true,"browserLanguage":"zh-CN","browserPlat":"iPhone","browserTimeZone":"Asia/Shanghai","webGlRender":"Apple GPU","webGlVendor":"Apple Inc.","numOfPlugins":0,"listOfPlugins":"unknown","screenRatio":3,"deviceMemory":"unknown","hardwareConcurrency":"4","cpuClass":"unknown","ifNotTrack":"unknown","ifAdBlock":0,"hasLiedResolution":1,"hasLiedOs":0,"hasLiedBrowser":0}',
+                        app_name: 'account_cn',
+                        device_fp: '38d7ee834d1e9'
+                    },
+                    noDs: true
+                },
                 /** 首页宝箱 */
                 index: {
                     url: `${hostRecord}game_record/app/hkrpg/api/index`,
@@ -140,4 +191,13 @@ export default class apiTool {
           }
         return urlMap[this.game]
     }
+}
+
+export function generateSeed(length = 16) {
+    const characters = '0123456789abcdef'
+    let result = ''
+    for (let i = 0; i < length; i++) {
+        result += characters[Math.floor(Math.random() * characters.length)]
+    }
+    return result
 }
