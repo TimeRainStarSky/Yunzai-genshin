@@ -14,6 +14,7 @@ export default class MysSign extends base {
     this.model = 'sign'
     this.isTask = false
     this.force = false
+    this.isSr = false
 
     this.cfg = gsCfg.getConfig('mys', 'set')
   }
@@ -59,7 +60,12 @@ export default class MysSign extends base {
 
   async doSign (ck, isLog = true) {
     ck = this.setCk(ck)
-    this.mysApi = new MysApi(ck.uid, ck.ck, { log: isLog, device_id: ck.device_id })
+    if(ck.region_name && ck.region_name.includes("星穹列车" || "无名客")){
+      this.isSr = true
+    }else{
+      this.isSr =false
+    }
+    this.mysApi = new MysApi(ck.uid, ck.ck, { log: isLog, device_id: ck.device_id },this.isSr)
     this.key = `${this.prefix}isSign:${this.mysApi.uid}`
     this.log = `[uid:${ck.uid}][qq:${lodash.padEnd(this.e.user_id, 10, ' ')}]`
 
