@@ -157,7 +157,13 @@ export default class MysSign extends base {
 
   // 缓存签到奖励
   async getReward (signDay) {
-    let key = `${this.prefix}reward`
+    let key = {}
+    if(this.mysApi.isSr){
+      key = `${this.prefixSr}reward`
+    }else{
+      key = `${this.prefix}reward`
+    }
+
     let reward = await redis.get(key)
 
     if (reward) {
