@@ -1,0 +1,8 @@
+{
+  "name": "genshin",
+  "author": "TimeRainStarSky, Yoimiya-Kokomi, Le-niao",
+  "type": "module",
+  "dependencies": {
+    "node-xlsx": "^0.23.0"
+  }
+}
