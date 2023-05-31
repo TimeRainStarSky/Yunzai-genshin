@@ -8,7 +8,12 @@ export default class base {
   }
 
   get prefix () {
-    return `Yz:genshin:${this.model}:`
+    //
+    if(this.e.isSr){
+      return `Yz:honkaisr:${this.model}:`
+    }else{
+      return `Yz:genshin:${this.model}:`
+    }
   }
 
   /**
