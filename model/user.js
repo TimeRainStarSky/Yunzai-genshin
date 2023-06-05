@@ -76,7 +76,7 @@ export default class User extends base {
     if (param.cookie_token_v2 && (param.account_mid_v2 || param.ltmid_v2)) { //
       // account_mid_v2 为版本必须带的字段，不带的话会一直提示绑定cookie失败 请重新登录
       flagV2 = true
-      data.ck = `ltuid=${param.ltuid || param.login_uid};account_mid_v2=${param.account_mid_v2};cookie_token_v2=${param.cookie_token_v2};ltoken_v2=${param.ltoken_v2};ltmid_v2=${param.ltmid_v2};`
+      data.ck = `ltuid=${param.ltuid || param.login_uid || param.ltuid_v2};account_mid_v2=${param.account_mid_v2};cookie_token_v2=${param.cookie_token_v2};ltoken_v2=${param.ltoken_v2};ltmid_v2=${param.ltmid_v2};`
     }
     if (param.mi18nLang) {
       data.ck += ` mi18nLang=${param.mi18nLang};`
@@ -424,9 +424,15 @@ export default class User extends base {
       }
       await user.save()
       if (fs.existsSync(`./data/MysCookie/${qq}.yaml`)) {
-        fs.rename(`./data/MysCookie/${qq}.yaml`, `./temp/MysCookieBak/${qq}.yaml`, (err) => {
-          if (err) console.log(err)
-        })
+        try {
+          let src = `./data/MysCookie/${qq}.yaml`;
+          let dest = `./temp/MysCookieBak/${qq}.yaml`;
+          await fs.promises.unlink(dest).catch((_) => { });
+          await fs.promises.copyFile(src, dest);
+          await fs.promises.unlink(src);
+        } catch (err) {
+          console.log(err);
+        }
       }
       count++
     }
