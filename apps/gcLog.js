@@ -147,12 +147,6 @@ export class gcLog extends plugin {
       return
     }
 
-    let friend = Bot.fl.get(Number(this.e.user_id))
-    if (!friend) {
-      await this.reply('无法发送文件，请先添加好友')
-      return
-    }
-
     let exportLog = new ExportLog(this.e)
 
     if (this.e.msg.includes('json')) {
