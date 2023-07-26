@@ -46,17 +46,25 @@ export default class GachaLog extends base {
 
     this.e.reply('链接发送成功,数据获取中... 请耐心等待')
 
-    let msg=''
+    /**制作合并消息 */
+    let MakeMsg=[]
+    let tmpMsg=''
     /** 按卡池更新记录 */
     for (let i in this.pool) {
       this.type = this.pool[i].type
       this.typeName = this.pool[i].typeName
       let res = await this.updateLog()
-      if (res) msg += `[${this.typeName}]记录获取成功，更新${res.num}条\n`
+      if(res){
+        tmpMsg+=`[${this.typeName}]记录获取成功，更新${res.num}条\n`
+      }
       if (i <= 1) await common.sleep(500)
     }
-    msg += `\n抽卡记录更新完成，您还可回复\n【#${this?.e?.isSr?'星铁光锥':'武器'}记录】统计${this?.e?.isSr?'星铁光锥':'武器'}池数据\n【#${this?.e?.isSr?'星铁':''}角色统计】按卡池统计数据\n【#导出记录】导出记录数据`
-    await this.e.reply(msg)
+    //只去掉结尾的多余一个换行符
+    tmpMsg=tmpMsg.replace(/(\n)$/, '')
+    MakeMsg.push(tmpMsg)
+    MakeMsg.push(`抽卡记录更新完成，您还可回复\n【#${this?.e?.isSr?'星铁光锥':'武器'}记录】统计${this?.e?.isSr?'星铁光锥':'武器'}池数据\n【#${this?.e?.isSr?'星铁':''}角色统计】按卡池统计数据\n【#导出记录】导出记录数据`)
+    let Msg = await common.makeForwardMsg(this.e, MakeMsg, tmpMsg)
+    await this.e.reply(Msg)
 
     this.isLogUrl = true
 
