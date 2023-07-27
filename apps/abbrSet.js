@@ -159,12 +159,10 @@ export class abbrSet extends plugin {
     let msg = []
     for (let i in list) {
       let num = Number(i) + 1
-      msg.push(`${num}.${list[i]}\n`)
+      msg.push(`${num}.${list[i]}`)
     }
 
-    let title = `${role.name}别名，${list.length}个`
-
-    msg = await common.makeForwardMsg(this.e, msg, title)
+    msg = await common.makeForwardMsg(this.e, [msg.join("\n")], `${role.name}别名，${list.length}个`)
 
     await this.e.reply(msg)
   }
