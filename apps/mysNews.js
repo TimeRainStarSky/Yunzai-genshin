@@ -144,15 +144,18 @@ export class mysNews extends plugin {
 
     let model
     let msg = `崩坏星穹铁道${typeName}推送已`
+    if (!Array.isArray(cfg[type][this.e.self_id]))
+      cfg[type][this.e.self_id] = []
+
     if (this.e.msg.includes('开启')) {
       model = '开启'
-      cfg[type].push(this.e.group_id)
-      cfg[type] = lodash.uniq(cfg[type])
+      cfg[type][this.e.self_id].push(this.e.group_id)
+      cfg[type][this.e.self_id] = lodash.uniq(cfg[type][this.e.self_id])
       msg += `${model}\n如有最新${typeName}将自动推送至此`
     } else {
       model = '关闭'
       msg += `${model}`
-      cfg[type] = lodash.difference(cfg[type], [this.e.group_id])
+      cfg[type][this.e.self_id] = lodash.difference(cfg[type][this.e.self_id], [this.e.group_id])
     }
 
     let yaml = YAML.stringify(cfg)
@@ -183,15 +186,18 @@ export class mysNews extends plugin {
 
     let model
     let msg = `原神${typeName}推送已`
+    if (!Array.isArray(cfg[type][this.e.self_id]))
+      cfg[type][this.e.self_id] = []
+
     if (this.e.msg.includes('开启')) {
       model = '开启'
-      cfg[type].push(this.e.group_id)
-      cfg[type] = lodash.uniq(cfg[type])
+      cfg[type][this.e.self_id].push(this.e.group_id)
+      cfg[type][this.e.self_id] = lodash.uniq(cfg[type][this.e.self_id])
       msg += `${model}\n如有最新${typeName}将自动推送至此`
     } else {
       model = '关闭'
       msg += `${model}`
-      cfg[type] = lodash.difference(cfg[type], [this.e.group_id])
+      cfg[type][this.e.self_id] = lodash.difference(cfg[type][this.e.self_id], [this.e.group_id])
     }
 
     let yaml = YAML.stringify(cfg)

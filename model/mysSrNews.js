@@ -222,29 +222,33 @@ export default class MysSrNews extends base {
         continue
       }
       if (val.typeName == '公告') {
-        for (let groupId of cfg.srannounceGroup) {
-          await this.sendNews(groupId, val.typeName, val.post.post_id)
+        for (let botId in cfg.srannounceGroup) {
+          for (let groupId of cfg.srannounceGroup[botId]) {
+            await this.sendNews(botId, groupId, val.typeName, val.post.post_id)
+          }
         }
       }
       if (val.typeName == '资讯') {
-        for (let groupId of cfg.srinfoGroup) {
-          await this.sendNews(groupId, val.typeName, val.post.post_id)
+        for (let botId in cfg.srinfoGroup) {
+          for (let groupId of cfg.srinfoGroup[botId]) {
+            await this.sendNews(botId, groupId, val.typeName, val.post.post_id)
+          }
         }
       }
     }
   }
 
-  async sendNews (groupId, typeName, postId) {
+  async sendNews (botId, groupId, typeName, postId) {
     if (!this.pushGroup[groupId]) this.pushGroup[groupId] = 0
     if (this.pushGroup[groupId] >= this.maxNum) return
 
-    let sended = await redis.get(`${this.key}${groupId}:${postId}`)
+    let sended = await redis.get(`${this.key}${botId}:${groupId}:${postId}`)
     if (sended) return
 
     // 判断是否存在群关系
-    this.e.group = Bot.pickGroup(groupId)
+    this.e.group = Bot[botId]?.pickGroup(groupId)
     if (!this.e.group) {
-      logger.mark(`[崩坏星穹铁道${typeName}推送] 群${groupId}未关联`)
+      logger.mark(`[崩坏星穹铁道${typeName}推送] 群${botId}:${groupId}未关联`)
       return
     }
 
@@ -270,7 +274,7 @@ export default class MysSrNews extends base {
       tmp = [`崩坏星穹铁道${typeName}推送\n`, tmp]
     }
 
-    redis.set(`${this.key}${groupId}:${postId}`, '1', { EX: 3600 * 10 })
+    redis.set(`${this.key}${botId}:${groupId}:${postId}`, '1', { EX: 3600 * 10 })
     // 随机延迟10-90秒
     await common.sleep(lodash.random(10, 90) * 1000)
     await this.e.group.sendMsg(tmp)

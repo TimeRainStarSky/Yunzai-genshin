@@ -6,13 +6,13 @@ pushTime: 0 0/5 * * * ?
 maxNum: 1
 
 #公共推送群
-announceGroup: []
+announceGroup: {}
 
 #资讯推送群
-infoGroup: []
+infoGroup: {}
 
 #崩坏星穹铁道公告推送群
-srannounceGroup: []
+srannounceGroup: {}
 
 #崩坏星穹铁道资讯推送群
-srinfoGroup: []
+srinfoGroup: {}
