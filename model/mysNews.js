@@ -277,9 +277,6 @@ export default class MysNews extends base {
     for (let gid of [1, 2, 3, 4, 6, 8]) {
       let type = gid == 1 ? 'bbb' : gid == 2 ? 'gs' : gid == 3 ? 'bb' : gid == 4 ? 'wd' : gid == 6 ? 'sr' : 'zzz'
 
-      // 包含关键字不推送
-      let banWord = cfg.banWord[type]
-
       let news = []
       if (!lodash.isEmpty(cfg[`${type}announceGroup`])) {
         let anno = await this.postData('getNewsList', { gids: gid, page_size: 10, type: 1 })
@@ -300,26 +297,18 @@ export default class MysNews extends base {
       this.e.isGroup = true
       this.pushGroup = []
       for (let val of news) {
-        if (Number(now - val.post.created_at) > interval) {
+        if (Number(now - val.post.created_at) > interval)
           continue
-        }
-        if (new RegExp(banWord).test(val.post.subject)) {
+        if (cfg.banWord[type] && new RegExp(cfg.banWord[type]).test(val.post.subject))
           continue
-        }
-        if (val.typeName == '公告') {
-          for (let botId in cfg[`${type}announceGroup`]) {
-            for (let groupId of cfg[`${type}announceGroup`][botId]) {
+        if (val.typeName == '公告')
+          for (let botId in cfg[`${type}announceGroup`])
+            for (let groupId of cfg[`${type}announceGroup`][botId])
               await this.sendNews(botId, groupId, val.typeName, val.post.post_id, gid)
-            }
-          }
-        }
-        if (val.typeName == '资讯') {
-          for (let botId in cfg[`${type}infoGroup`]) {
-            for (let groupId of cfg[`${type}infoGroup`][botId]) {
+        if (val.typeName == '资讯')
+          for (let botId in cfg[`${type}infoGroup`])
+            for (let groupId of cfg[`${type}infoGroup`][botId])
               await this.sendNews(botId, groupId, val.typeName, val.post.post_id, gid)
-            }
-          }
-        }
       }
     }
   }
