@@ -3,29 +3,29 @@
 <head>
   <meta http-equiv="content-type" content="text/html;charset=utf-8"/>
   <link rel="shortcut icon" href="#"/>
-  <link rel="stylesheet" type="text/css" href="{{pluResPath}}html/gachaLog/gachaLog.css"/>
+  <link rel="stylesheet" type="text/css" href="{{pluResPath}}html/gachaAllLog/gachaAllLog.css"/>
   <link rel="preload" href="{{resPath}}font/tttgbnumber.ttf" as="font">
-  <link rel="preload" href="{{pluResPath}}img/worldcard/星穹列车.png" as="image">
+  <link rel="preload" href="{{pluResPath}}img/namecard/{{headImg}}.png" as="image">
+  <link rel="preload" href="{{pluResPath}}img/other/bg5.png" as="image">
   {{@headStyle}}
 </head>
 <body id="container" class="body_box">
-<div class="container">
-  <div class="info_box">
-
+<div class="container" style="width:{{data.length* 500}} px">
+  {{each data log}}
+  <div class="info_box" >
     <div class="head_box">
       <div class="id_text">
-        ID: {{uid}}
+        ID: {{log.uid}}
       </div>
       <h2 class="day_text">
-        {{allNum}}抽
-        <span class="label label_{{type}}">{{typeName}}池</span>
+        {{log.allNum}}抽
+        <span class="label label_{{type}}">{{log.typeName}}池</span>
       </h2>
-      <img class="starrail_logo" src="{{pluResPath}}img/other/logo.png"/>
+      <img class="genshin_logo" src="{{pluResPath}}img/other/原神.png"/>
     </div>
-
     <div class="data_box">
       <div class="tab_lable">数据总览</div>
-      {{each line val}}
+      {{each log.line val}}
       <div class="data_line">
         {{each val item}}
         <div class="data_line_item">
@@ -35,34 +35,35 @@
         {{/each}}
       </div>
       {{/each}}
-
       <div class="line_box">
         <span class="line"></span>
         <span class="text">五星历史 {{firstTime}} ~ {{lastTime}}</span>
         <span class="line"></span>
       </div>
-
-
       <div class="card_list">
-        {{each fiveLog val}}
-        <div class="item star5">
+        {{each log.fiveLog val}}
+        <div class="item {{val.isNull?'isNull':''}} star5 {{val.num<=10?'gold': (val.num<log.max*0.5 ? 'good' : (val.num<log.max*0.83) ? 'normal': 'bad')}}">
           {{ if val.isUp && typeName == '角色' }}
             <span class="minimum">UP</span>
           {{/if}}
-          <img class="role"
-               src="{{pluResPath}}img/{{val.item_type=='角色'?'role':'weapon'}}/{{val.name}}.webp"
-               onerror="whenError(this,'{{val.item_type=='角色'?'role':'weapon'}}')"/>
-          <!-- <div class="num">{{val.num}}</div>-->
-          <div class="num_name">{{val.num}}</div>
+          {{ if val.isNull }}
+            <div class="role"></div>
+            <div class="num_name">{{val.num}}</div>
+          {{/if}}
+          {{ if !val.isNull }}
+            <img class="role"
+                 src="{{pluResPath}}img/{{val.item_type=='角色'?'role':'weapon'}}/{{val.name}}.png"
+                 onerror="whenError(this,'{{val.item_type=='角色'?'role':'weapon'}}')"/>
+            <!-- <div class="num">{{val.num}}</div>-->
+            <div class="num_name {{val.num<=10?'gold': (val.num<log.max*0.5 ? 'good' : (val.num<log.max*0.83) ? 'normal': 'bad')}}" >{{val.num}}</div>
+          {{/if}}
         </div>
         {{/each}}
       </div>
-      {{if hasMore }}
-        <div class="hasMore">*完整数据请私聊查看</div>
-      {{/if}}
     </div>
-    <div class="logo"> Created By TRSS-Yunzai</div>
   </div>
+    {{/each}}
+  <div class="logo">Created By TRSS-Yunzai</div>
 </div>
 </body>
 <script type="text/javascript">
