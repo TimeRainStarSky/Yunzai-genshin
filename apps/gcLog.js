@@ -54,7 +54,7 @@ export class gcLog extends plugin {
       ]
     })
 
-    this.androidUrl = 'docs.qq.com/doc/DUWpYaXlvSklmVXlX'
+    this.androidUrl = 'https://docs.qq.com/doc/DUWpYaXlvSklmVXlX'
   }
 
   async init () {
