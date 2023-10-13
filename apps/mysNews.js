@@ -12,7 +12,7 @@ export class mysNews extends plugin {
       name: '米游社公告',
       dsc: '#公告 #资讯 #活动',
       event: 'message',
-      priority: 6000,
+      priority: 7000,
       rule: [
         {
           reg: '^#*(官方|星铁|原神|崩坏三|崩三|绝区零|崩坏二|崩二|崩坏学园二|未定|未定事件簿)?(公告|资讯|活动)[0-9]*$',
@@ -27,7 +27,7 @@ export class mysNews extends plugin {
           fnc: 'mysUrl'
         },
         {
-          reg: '#*原(石|神)(预估|盘点)$',
+          reg: '^#*原(石|神)(预估|盘点)$',
           fnc: 'ysEstimate'
         },
         {
