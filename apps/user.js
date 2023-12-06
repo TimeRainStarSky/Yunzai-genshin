@@ -34,7 +34,7 @@ export class user extends plugin {
           fnc: 'myCk'
         },
         {
-          reg: '^#?删除(ck|cookie)$',
+          reg: '^#?(原神|星铁)?删除(ck|cookie)$',
           fnc: 'delCk'
         },
         {
@@ -42,7 +42,7 @@ export class user extends plugin {
           fnc: 'delUid'
         },
         {
-          reg: '^#?(原神|星铁)?绑定(uid|UID)?\\s*[1-9][0-9]{8}$',
+          reg: '^#(原神|星铁)?绑定(uid|UID)?\\s*[1-9][0-9]{8}$',
           fnc: 'bingUid'
         },
         {
