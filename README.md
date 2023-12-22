@@ -34,13 +34,13 @@
 
 | ck指令 | 说明|
 | :---------------- | --------------- |
-|体力帮助，cookie帮助|cookie绑定教程|
-|cookie代码|获取cookie的js代码|
-|#绑定cookie|绑定米游社cookie|
-|#删除cookie|删除绑定的cookie|
+|体力帮助，Cookie帮助|Cookie绑定教程|
+|Cookie代码|获取Cookie的js代码|
+|#绑定Cookie|绑定米游社Cookie|
+|#删除Cookie|删除绑定的Cookie|
 |#绑定uid|绑定游戏的uid|
-|#uid|显示已绑定cookie的uid|
-|#我的ck|当前绑定的主cookie|
+|#uid|显示已绑定Cookie的uid|
+|#我的ck|当前绑定的主Cookie|
 
 | 抽卡记录指令 | 说明|
 | :---------------- | --------------- |
