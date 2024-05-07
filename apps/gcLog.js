@@ -84,6 +84,7 @@ export class gcLog extends plugin {
       let name = this.e.file?.name
       if (/(.*)([1-9]|18)[0-9]{8}(.*).json/ig.test(name)) {
         this.e.msg = "#json文件导入记录"
+      fs.unlinkSync(`./data/stdin/temp.json`);
         return true
       }
     }
