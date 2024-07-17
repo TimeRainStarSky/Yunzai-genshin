@@ -76,10 +76,15 @@ export class gcLog extends plugin {
   }
 
   accept() {
+    if (fs.existsSync("./data/stdin/temp.json")) {
+      var tempJson = JSON.parse(fs.readFileSync('./data/stdin/temp.json'))
+      this.e.file = tempJson
+    }
     if (this.e.file) {
       let name = this.e.file?.name
       if (/(.*)(18|[1-9])[0-9]{8}(.*).json/ig.test(name)) {
         this.e.msg = "#json文件导入记录"
+      fs.unlinkSync(`./data/stdin/temp.json`);
         return true
       }
     }
