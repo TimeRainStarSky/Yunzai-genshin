@@ -185,7 +185,12 @@ export default class ExportLog extends base {
     let uid = /(18|[1-9])[0-9]{8}/g.exec(this.e.file.name)[0]
     let textPath = `${this.path}${this.e.file.name}`
     /** 获取文件下载链接 */
-    let fileUrl = await this.e.friend.getFileUrl(this.e.file.fid)
+    var fileUrl
+    if (this.e.file.url) {
+      fileUrl = this.e.file.url
+    } else {
+      fileUrl = await this.e.friend.getFileUrl(this.e.file.fid)
+    }
 
     let ret = await common.downFile(fileUrl, textPath)
     if (!ret) {
