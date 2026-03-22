@@ -412,7 +412,9 @@ export default class ExportLog extends base {
         msg.push(`${typeName[type]}记录：${data[type].length}条`)
       }
 
-      await this.e.reply(`${importName}，${this.e.isSr ? "星铁" : "原神"}记录导入成功\n${msg.join("\n")}`)
+      await this.e.reply(
+        `${importName}，${this.e.isSr ? "星铁" : "原神"}记录导入成功\n${msg.join("\n")}`,
+      )
     } finally {
       /** 清理文件 */
       if (fs.existsSync(textPath)) fs.unlink(textPath, () => {})
