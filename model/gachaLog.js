@@ -466,14 +466,7 @@ export default class GachaLog extends base {
         fiveMaxNum = data.fiveLog.length
       }
       data.max = i === "武器" || i === "光锥" ? 80 : 90
-      // Explainable display estimate only: earlier five-star pulls and fewer misses score higher.
-      const fiveAvg = Number(data.fiveAvg) || 0
-      const noWaiRate = Math.max(0, Math.min(100, Number(data.noWaiRate) || 0))
-      // Luck is an explainable estimate from real pool results: five-star pity
-      // efficiency (70%) and non-guaranteed UP rate (30%).
-      const avgScore = fiveAvg > 0 ? Math.max(0, Math.min(100, (data.max - fiveAvg) / data.max * 100)) : 0
-      data.luckPercent = Math.round(avgScore * 0.7 + noWaiRate * 0.3)
-      data.luckPercent = Math.max(0, Math.min(100, data.luckPercent))
+      data.luckPercent = data.luckPercent || 0
       data.luckRating = data.luckPercent >= 85 ? "极欧" : data.luckPercent >= 70 ? "很欧" : data.luckPercent >= 55 ? "偏欧" : data.luckPercent >= 40 ? "普通" : "偏非"
       data.luckTitle = `超过 ${data.luckPercent}% 旅行者`
       data.luckImage = `html/gacha/imgs/luck/${data.luckPercent >= 92 ? 3 : data.luckPercent >= 80 ? 1 : data.luckPercent >= 68 ? 7 : data.luckPercent >= 55 ? 5 : data.luckPercent >= 42 ? 14 : data.luckPercent >= 30 ? 12 : data.luckPercent >= 18 ? 13 : 8}.jpg`
@@ -514,10 +507,16 @@ export default class GachaLog extends base {
     const combinedNoWaiRate = noWaiWeight
       ? (logData.reduce((sum, pool) => sum + (Number(pool.noWaiRate) || 0) * Math.max((Number(pool.fiveNum) || 0) - (Number(pool.bigNum) || 0), 0), 0) / noWaiWeight).toFixed(1)
       : "0.0"
-    const combinedMax = logData.reduce((sum, pool) => sum + (Number(pool.max) || 0) * (Number(pool.fiveNum) || 0), 0) / (fiveWeight || 1)
-    const combinedLuckPercent = Math.max(0, Math.min(100, Math.round(
-      (combinedFiveAvg > 0 ? (combinedMax - combinedFiveAvg) / combinedMax * 100 : 0) * 0.7 + Number(combinedNoWaiRate) * 0.3,
-    )))
+    const combinedUsed = logData.reduce((sum, pool) => {
+      const up = pool.luckPercentSource === "up"
+      const num = up ? Math.max((Number(pool.fiveNum) || 0) - (Number(pool.wai) || 0), 0) : (Number(pool.fiveNum) || 0)
+      const avg = up ? (Number(pool.isvalidNum) || 0) : (Number(pool.fiveAvg) || 0)
+      return sum + avg * num
+    }, 0)
+    const combinedNum = logData.reduce((sum, pool) => sum + (pool.luckPercentSource === "up"
+      ? Math.max((Number(pool.fiveNum) || 0) - (Number(pool.wai) || 0), 0)
+      : (Number(pool.fiveNum) || 0)), 0)
+    const combinedLuckPercent = combinedNum > 0 ? Math.round(this.luckPercentOf(this.luckDist(this.luckModel(301), true), combinedNum, combinedUsed)) : 0
     const combinedLuckRating = combinedLuckPercent >= 85 ? "极欧" : combinedLuckPercent >= 70 ? "很欧" : combinedLuckPercent >= 55 ? "偏欧" : combinedLuckPercent >= 40 ? "普通" : "偏非"
     const combinedLuckTitle = `超过 ${combinedLuckPercent}% 旅行者`
     const combinedLuckImage = `html/gacha/imgs/luck/${combinedLuckPercent >= 92 ? 3 : combinedLuckPercent >= 80 ? 1 : combinedLuckPercent >= 68 ? 7 : combinedLuckPercent >= 55 ? 5 : combinedLuckPercent >= 42 ? 14 : combinedLuckPercent >= 30 ? 12 : combinedLuckPercent >= 18 ? 13 : 8}.jpg`
@@ -561,12 +560,17 @@ export default class GachaLog extends base {
     data.typeName = typeName
     /** 渲染数据 */
     const analysed = data
-    const max = type === 12 || type === 22 || type === 302 ? 80 : 90
     const fiveAvg = Number(analysed.fiveAvg) || 0
     const noWaiRate = Math.max(0, Math.min(100, Number(analysed.noWaiRate) || 0))
     data = this.randData(data)
-    const avgScore = fiveAvg > 0 ? Math.max(0, Math.min(100, (max - fiveAvg) / max * 100)) : 0
-    const luckPercent = Math.max(0, Math.min(100, Math.round(avgScore * 0.7 + noWaiRate * 0.3)))
+    const model = this.luckModel(type)
+    const upNum = Math.max((Number(analysed.fiveNum) || 0) - (Number(analysed.wai) || 0), 0)
+    const useUp = model.upRate > 0 && upNum > 0
+    const luckRaw = useUp
+      ? this.luckPercentOf(this.luckDist(model, true), upNum, (Number(analysed.isvalidNum) || 0) * upNum)
+      : this.luckPercentOf(this.luckDist(model, false), Number(analysed.fiveNum) || 0, fiveAvg * (Number(analysed.fiveNum) || 0))
+    const luckPercent = luckRaw === false ? 0 : Math.round(luckRaw)
+    data.luckPercentSource = useUp ? "up" : "five"
     data.luckPercent = luckPercent
     data.luckRating = luckPercent >= 85 ? "极欧" : luckPercent >= 70 ? "很欧" : luckPercent >= 55 ? "偏欧" : luckPercent >= 40 ? "普通" : "偏非"
     data.luckTitle = `超过 ${luckPercent}% 旅行者`
@@ -692,6 +696,63 @@ export default class GachaLog extends base {
     this.uid = uidArr[0].uid
 
     return uidArr[0].uid
+  }
+
+  // 与 miao GachaLuck 相同：官方基础概率 + 软保底，算花费抽数多于你的玩家占比
+  luckModel(type) {
+    const models = {
+      301: { base: 0.006, soft: 74, step: 0.06, hard: 90, upRate: 0.55 },
+      302: { base: 0.007, soft: 63, step: 0.07, hard: 80, upRate: 0.75 },
+      200: { base: 0.006, soft: 74, step: 0.06, hard: 90 },
+      500: { base: 0.006, soft: 74, step: 0.06, hard: 90 },
+      11: { base: 0.006, soft: 74, step: 0.06, hard: 90, upRate: 0.5 },
+      12: { base: 0.008, soft: 66, step: 0.07, hard: 80, upRate: 0.75 },
+      1: { base: 0.006, soft: 74, step: 0.06, hard: 90 },
+    }
+    return models[type] || models[301]
+  }
+
+  luckConv(a, b, limit) {
+    const ret = new Array(Math.min(a.length + b.length - 1, limit + 1)).fill(0)
+    for (let i = 0; i < a.length && i <= limit; i++) {
+      if (!a[i]) continue
+      for (let j = 0; j < b.length && i + j <= limit; j++) {
+        ret[i + j] += a[i] * b[j]
+      }
+    }
+    return ret
+  }
+
+  luckDist(model, up) {
+    const five = [0]
+    let survive = 1
+    for (let i = 1; i <= model.hard; i++) {
+      const p = i >= model.hard ? 1 : Math.min(1, model.base + Math.max(0, i - model.soft + 1) * model.step)
+      five[i] = survive * p
+      survive *= 1 - p
+    }
+    if (!up || !model.upRate) return five
+    const twice = this.luckConv(five, five, model.hard * 2)
+    return twice.map((v, i) => (five[i] || 0) * model.upRate + v * (1 - model.upRate))
+  }
+
+  luckPercentOf(dist, num, used) {
+    if (!(num > 0) || !(used > 0)) return false
+    const mean = dist.reduce((sum, p, i) => sum + p * i, 0)
+    const variance = dist.reduce((sum, p, i) => sum + p * (i - mean) * (i - mean), 0)
+    if (num > 50) {
+      const z = (used - num * mean) / Math.sqrt(num * variance)
+      const t = 1 / (1 + 0.2316419 * Math.abs(z))
+      const d = 0.3989422804014327 * Math.exp(-z * z / 2)
+      const tail = d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))))
+      const cdf = z > 0 ? 1 - tail : tail
+      return Math.min(100, Math.max(0, (1 - cdf) * 100))
+    }
+    let total = [1]
+    for (let i = 0; i < num; i++) total = this.luckConv(total, dist, used)
+    let below = 0
+    for (let i = 0; i < used && i < total.length; i++) below += total[i]
+    return Math.min(100, Math.max(0, (1 - below - (total[used] || 0) / 2) * 100))
   }
 
   /** 统计计算记录 */
