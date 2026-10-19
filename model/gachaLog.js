@@ -1,4 +1,4 @@
-﻿import base from "./base.js"
+import base from "./base.js"
 import fetch from "node-fetch"
 import lodash from "lodash"
 import fs from "node:fs"
@@ -671,7 +671,7 @@ export default class GachaLog extends base {
         try {
           selectedUid = await this.e.runtime.getUid(this.e)
         } catch (error) {
-          logger.warn([抽卡记录] 获取当前选择UID失败：)
+          logger.warn(`[抽卡记录] 获取当前选择UID失败：`, error)
         }
       }
 
@@ -1266,4 +1266,3 @@ export default class GachaLog extends base {
     return "cn_gf01"
   }
 }
-
