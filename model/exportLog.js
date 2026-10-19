@@ -75,6 +75,10 @@ export default class ExportLog extends base {
     if (!this.uid) return false
 
     let list = this.getAllList().list
+    if (!list || list.length === 0) {
+      this.e.reply("当前没有可导出的抽卡记录")
+      return false
+    }
     let yunzaiName = cfg.package.name
     if (yunzaiName == "miao-yunzai") {
       yunzaiName = "Miao-Yunzai"
@@ -83,7 +87,7 @@ export default class ExportLog extends base {
     } else if (yunzaiName == "trss-yunzai") {
       yunzaiName = "TRSS-Yunzai"
     } else {
-      yunzaiName = _.capitalize(yunzaiName)
+      yunzaiName = lodash.capitalize(yunzaiName)
     }
     let basic = {
       export_time: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -95,17 +99,28 @@ export default class ExportLog extends base {
     if (this.e.uigfver === "v2") {
       data = {
         info: {
-          uid: this.uid,
-          lang: list[0].lang,
+          uid: String(this.uid),
+          lang: list[0]?.lang || "zh-cn",
           ...basic,
         },
         list,
       }
       if (this.e.isSr) {
         data.info.srgf_version = "v1.0"
-        data.info.region_time_zone = moment(list[0].time).utcOffset() / 60
+        data.info.region_time_zone = moment(list[0]?.time).utcOffset() / 60
       } else {
         data.info.uigf_version = "v2.3"
+      }
+    } else if (this.e.uigfver === "v3") {
+      data = {
+        info: {
+          uid: String(this.uid),
+          lang: list[0]?.lang || "zh-cn",
+          ...basic,
+          uigf_version: "v3.0",
+          region_time_zone: 8,
+        },
+        list,
       }
     } else if (this.e.uigfver === "v4") {
       data = {
@@ -216,7 +231,12 @@ export default class ExportLog extends base {
   }
 
   getImportFileName(fileName = "", fileUrl = "") {
-    if (fileName) return fileName
+    if (typeof fileName === "object" && fileName) {
+      fileName = fileName.name || fileName.file || fileName.fileName || ""
+    }
+    if (typeof fileName === "string" && fileName.trim()) {
+      return fileName.trim()
+    }
     if (!fileUrl) return `${this.e.user_id}.json`
 
     try {
@@ -250,27 +270,52 @@ export default class ExportLog extends base {
     let fileName = ""
 
     if (this.e.file) {
-      fileName = this.e.file.name || ""
-      fileUrl = this.e.file.url || ""
+      const file = this.e.file
+      fileName = file.name || file.file || file.fileName || ""
+      fileUrl = file.url || file.file_url || file.fileUrl || ""
+      const fileId = file.fid || file.file_id || file.fileId || file.id || ""
 
-      if (!/https?:\/\//.test(fileUrl)) {
-        if (this.e.group?.getFileUrl && this.e.file.fid) {
-          fileUrl = await this.e.group.getFileUrl(this.e.file.fid)
-        } else if (this.e.friend?.getFileUrl && this.e.file.fid) {
-          fileUrl = await this.e.friend.getFileUrl(this.e.file.fid)
+      if (!/^https?:\/\//i.test(fileUrl) && fileId) {
+        const targets = [
+          { obj: this.e.bot, fn: this.e.bot?.getFileUrl },
+          { obj: this.e.group, fn: this.e.group?.getFileUrl },
+          { obj: this.e.friend, fn: this.e.friend?.getFileUrl },
+        ]
+
+        for (const target of targets) {
+          if (!target.obj || typeof target.fn !== "function") continue
+          try {
+            let res = await target.fn.call(target.obj, fileId)
+            if (typeof res === "string") {
+              fileUrl = res
+            } else if (res?.url) {
+              fileUrl = res.url
+            } else if (res?.data?.url) {
+              fileUrl = res.data.url
+            } else if (res?.file?.url) {
+              fileUrl = res.file.url
+            }
+            if (/^https?:\/\//i.test(fileUrl)) break
+          } catch (err) {
+            logger.warn(`[抽卡记录] 获取文件下载链接异常：${err}`)
+          }
         }
       }
     }
 
-    if (!/https?:\/\//.test(fileUrl) && msgUrl) {
+    if (!/^https?:\/\//i.test(fileUrl) && msgUrl) {
       fileUrl = msgUrl
-      fileName = this.getImportFileName(fileName, fileUrl)
+      if (!fileName) {
+        fileName = this.getImportFileName("", fileUrl)
+      }
     }
 
-    if (!/https?:\/\//.test(fileUrl)) return false
+    if (!/^https?:\/\//i.test(fileUrl)) {
+      logger.warn(`[抽卡记录] 文件无可用下载链接, file=${JSON.stringify(this.e.file)}`)
+      return false
+    }
 
     const importName = this.normalizeImportFileName(this.getImportFileName(fileName, fileUrl))
-
     return {
       fileUrl,
       importName,
@@ -394,6 +439,37 @@ export default class ExportLog extends base {
         })
       }
 
+      const fileUid = String(
+        json.info?.uid ||
+        json[this.game === "sr" ? "hkrpg" : "hk4e"]?.[0]?.uid ||
+        list[0]?.uid ||
+        "",
+      )
+
+      if (!fileUid) {
+        this.e.reply("json文件内容错误：缺少UID")
+        return false
+      }
+
+      await this.getUid()
+      const currentUid = String(
+        this.e?.uid ||
+        this.e?.runtime?.uid ||
+        this.e?.runtime?.user?._regUid ||
+        this.e?.user?._regUid ||
+        this.uid ||
+        "",
+      )
+
+      if (currentUid && String(currentUid) !== fileUid) {
+        this.e.reply(
+          `UID不匹配，导入已取消\n当前绑定UID：${currentUid}\n文件中的UID：${fileUid}`,
+        )
+        return false
+      }
+
+      const targetUid = fileUid || currentUid
+
       let data = this.dealJson(list)
       if (!data) return false
 
@@ -403,9 +479,7 @@ export default class ExportLog extends base {
         let typeName = this.typeName(this.game)
         if (!typeName[type]) continue
         let gachLog = new GachaLog(this.e)
-        gachLog.uid = json.info?.uid
-          ? json.info.uid
-          : json[this.game === "sr" ? "hkrpg" : "hk4e"][0].uid
+        gachLog.uid = targetUid
         gachLog.type = type
         gachLog.writeJson(data[type])
 
@@ -455,7 +529,16 @@ export default class ExportLog extends base {
     })
 
     for (let v of list) {
-      if (this.game === "sr") v.uigf_gacha_type = v.gacha_type
+      let type = String(v.uigf_gacha_type || v.gacha_type)
+      if (this.game === "gs" && type === "400") {
+        type = "301"
+      }
+      if (this.game === "sr") {
+        v.uigf_gacha_type = String(v.gacha_type)
+      } else {
+        v.uigf_gacha_type = type
+      }
+      v.gacha_type = String(v.gacha_type)
       if (!data[v.uigf_gacha_type]) data[v.uigf_gacha_type] = []
       data[v.uigf_gacha_type].push(v)
     }

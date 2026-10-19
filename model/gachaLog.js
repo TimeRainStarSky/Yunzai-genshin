@@ -1,4 +1,4 @@
-import base from "./base.js"
+﻿import base from "./base.js"
 import fetch from "node-fetch"
 import lodash from "lodash"
 import fs from "node:fs"
@@ -659,11 +659,31 @@ export default class GachaLog extends base {
 
     if (!this.uid) {
       this.e.at = false
-      this.uid = this?.e?.isSr
-        ? this.e.user?._games?.sr?.uid
-        : this.e.user?._games?.gs?.uid ||
-          (await this.e.runtime.getUid(this.e)) ||
-          (await redis.get(this.uidKey))
+      const eventUid =
+        this.e?.uid ||
+        this.e?.runtime?.uid ||
+        this.e?.runtime?.user?._regUid ||
+        this.e?.runtime?.user?.uid ||
+        this.e?.user?._regUid
+
+      let selectedUid = ""
+      if (typeof this.e?.runtime?.getUid === "function") {
+        try {
+          selectedUid = await this.e.runtime.getUid(this.e)
+        } catch (error) {
+          logger.warn([抽卡记录] 获取当前选择UID失败：)
+        }
+      }
+
+      const defaultUid = this.e?.isSr
+        ? this.e?.user?._games?.sr?.uid
+        : this.e?.user?._games?.gs?.uid
+
+      this.uid =
+        eventUid ||
+        selectedUid ||
+        defaultUid ||
+        (await redis.get(this.uidKey))
     }
 
     /** 记录有绑定的uid */
@@ -1246,3 +1266,4 @@ export default class GachaLog extends base {
     return "cn_gf01"
   }
 }
+
