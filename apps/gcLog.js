@@ -1,4 +1,4 @@
-import plugin from "../../../lib/plugins/plugin.js"
+﻿import plugin from "../../../lib/plugins/plugin.js"
 import fs from "node:fs"
 import GachaLog from "../model/gachaLog.js"
 import LogCount from "../model/logCount.js"
@@ -29,6 +29,14 @@ export class gcLog extends plugin {
         {
           reg: "^#?(原神|星铁)?(强制)?导出记录(json)?(v2|v4)?$",
           fnc: "exportLog",
+        },
+        {
+          reg: "^#?(强制)?导入小黑盒抽卡记录$",
+          fnc: "importHeiBox",
+        },
+        {
+          reg: "^#?(强制)?导出小黑盒抽卡记录$",
+          fnc: "exportHeiBox",
         },
         {
           reg: "^#?(记录帮助|抽卡帮助)$",
@@ -161,6 +169,44 @@ export class gcLog extends plugin {
     if (this.e.isGroup) this.reply("已收到文件，请撤回", false, { at: true })
   }
 
+  /** #导入小黑盒抽卡记录 */
+  importHeiBox() {
+    if (this.e.isGroup && !this.e.msg.includes("强制")) {
+      return this.reply(
+        建议私聊导入，若你确认要在此导入，请发送【#强制导入小黑盒抽卡记录】,
+        false,
+        { at: true },
+      )
+    }
+
+    this.setContext("heiBoxJsonFile")
+    return this.reply("请发送小黑盒导出的抽卡记录Json文件")
+  }
+
+  /** 接收小黑盒Json文件 */
+  async heiBoxJsonFile() {
+    if (!this.e.file && !/https?:\/\//.test(this.e.msg)) return false
+
+    this.finish("heiBoxJsonFile")
+    await new ExportLog(this.e).logJson()
+
+    if (this.e.isGroup) this.reply("已收到小黑盒抽卡记录文件，请撤回", false, { at: true })
+  }
+
+  /** #导出小黑盒抽卡记录 */
+  exportHeiBox() {
+    if (this.e.isGroup && !this.e.msg.includes("强制")) {
+      return this.reply(
+        建议私聊导出，若你确认要在此导出，请发送【#强制导出小黑盒抽卡记录】,
+        false,
+        { at: true },
+      )
+    }
+    // 小黑盒支持平铺的标准 UIGF v2.3 / v3.0 格式
+    this.e.uigfver = "v3"
+    return new ExportLog(this.e).exportJson()
+  }
+
   help() {
     this.e.reply([
       segment.image(`file://${_path}/resources/logHelp/记录帮助.png`),
@@ -199,3 +245,4 @@ export class gcLog extends plugin {
     await new GachaLog(this.e).setFetchFullLog(!isOff)
   }
 }
+
